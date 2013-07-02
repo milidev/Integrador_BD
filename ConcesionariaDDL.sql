@@ -1,4 +1,7 @@
-/* CREACION DE TABLAS */
+CREATE OR REPLACE TYPE ListaDeCompras AS VARRAY(1000) OF INTEGER;
+CREATE OR REPLACE TYPE ListaDeVehiculos AS VARRAY(100) OF VARCHAR2(30);
+CREATE OR REPLACE TYPE ListaDePedidos AS VARRAY(20) OF INTEGER;
+CREATE OR REPLACE TYPE ListaDeAdicionales AS VARRAY(100) OF INTEGER;
 
 CREATE TABLE IF NOT EXISTS sector(
 idSector SMALLINT NOT NULL UNIQUE AUTO_INCREMENT,
@@ -20,7 +23,7 @@ CREATE TABLE IF NOT EXISTS sucursal(
  /*
  CREATE TABLE IF NOT EXISTS persona(
  dni VARCHAR2(15) NOT NULL UNIQUE,
- nombre VARCHAR2(20),
+ nombre VARCHAR2(25),
  apellido VARCHAR2(30),
  direccion VARCHAR2(60),
  telefono VARCHAR2(30),
@@ -45,7 +48,7 @@ CREATE TABLE IF NOT EXISTS sucursal(
  CREATE TABLE IF NOT EXISTS empleado(
  idEmpleado INTEGER NOT NULL UNIQUE AUTO_INCREMENT,
  dni VARCHAR2(15) NOT NULL UNIQUE,
- nombre VARCHAR2(20) NOT NULL,
+ nombre VARCHAR2(25) NOT NULL,
  apellido VARCHAR2(30) NOT NULL,
  direccion VARCHAR2(60) NOT NULL,
  sueldo NUMBER(10,2) NOT NULL,
@@ -60,4 +63,60 @@ CREATE TABLE IF NOT EXISTS sucursal(
  FOREIGN KEY numero_sucursal REFERENCES sucursal(idSucursal),
  FOREIGN KEY nombre_sector REFERENCES sector(descripcion));
  
-  
+ CREATE TABLE IF NOT EXISTS cliente(
+ idCliente INTEGER NOT NULL UNIQUE AUTO_INCREMENT,
+ dni VARCHAR2(15) NOT NULL UNIQUE,
+ nombre VARCHAR2(25) NOT NULL,
+ apellido VARCHAR2(30) NOT NULL,
+ nivel CHAR(2) CHECK nivel IN ('A1','B1','C1','A2','B2','C2','A3','B3','C3'),
+ mail VARCHAR2(60) NOT NULL UNIQUE,
+ idSucursal SMALLINT CHECK idSucursal IN (SELECT idSucursal FROM sucursal),
+ compras ListaDeCompras,
+ direccion VARCHAR2(50) NOT NULL,
+ telefono VARCHAR2(20) NOT NULL,
+ INDEX(idCliente),
+ INDEX(dni(15)),
+ INDEX(apellido(30)),
+ FOREIGN KEY sucursal_pertenencia REFERENCES sucursal(idSucursal),
+ PRIMARY KEY(idCliente));
+ 
+ CREATE TABLE IF NOT EXISTS venta(
+ idVenta INTEGER NOT NULL UNIQUE AUTO_INCREMENT,
+ idVendedor INTEGER NOT NULL,
+ idVehiculos ListaDeVehiculos,
+ seña NUMBER(10,2) NOT NULL,
+ idCliente INTEGER NOT NULL,
+ dniCliente VARCHAR(15) NOT NULL
+ metodoDePago VARCHAR2(20) NOT NULL,
+ cantidad INT NOT NULL,
+ idSucursal SMALLINT CHECK idSucursal IN (SELECT idSucursal FROM sucursal),
+ fechaVenta DATE NOT NULL,
+ fechaDeEntrega DATE NOT NULL,
+ comisionVendedor DOUBLE NOT NULL,
+ pedidos ListaDePedidos NOT NULL,
+ adicionales ListaDeAdicionales,
+ INDEX(idVenta),
+ INDEX(idVendedor),
+ INDEX(idCliente),
+ INDEX(idSucursal),
+ PRIMARY KEY(idVenta),
+ FOREIGN KEY idVendedor REFERENCES vendedor(idVendedor),
+ FOREIGN KEY idVehiculos REFERENCES vehiculos(idVehiculo),
+ FOREIGN KEY idCliente REFERENCES cliente(idCliente));
+ 
+ CREATE TABLE IF NOT EXISTS pedido(
+ idPedido INTEGER NOT NULL UNIQUE,
+ idVenta INTEGER NOT NULL,
+ cantidadDeUnidades INT NOT NULL,
+ marca VARCHAR2(25) NOT NULL,
+ modelo VARCHAR2(50) NOT NULL,
+ fechaPedido DATE NOT NULL,
+ fechaEntrega DATE NOT NULL,
+ adicionales ListaDeAdicionales,
+ INDEX(idPedido),
+ INDEX(idVenta),
+ FOREIGN KEY idVenta REFERENCES venta(idVenta),
+ PRIMARY KEY(idPedido));
+ 
+ 
+ 
